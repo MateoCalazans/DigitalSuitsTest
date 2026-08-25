@@ -1,0 +1,85 @@
+{%- doc -%}
+  Renders the call-to-action for the DS Feature Banner section in one of two modes.
+
+  @param {object} settings - The section settings object
+  @param {string} section_id - Section id, used to build a unique product form id
+
+  @example
+  {% render 'ds-feature-banner-button', settings: section.settings, section_id: section.id %}
+{%- enddoc -%}
+
+{%- liquid
+  assign label = settings.button_label | default: 'Shop now'
+  assign classes = 'ds-feature-banner__button ds-feature-banner__button--' | append: settings.button_style
+-%}
+
+{%- if settings.button_action == 'add_to_cart' -%}
+  {%- liquid
+    assign product = settings.product
+    if request.visual_preview_mode and product == blank
+      assign product = collections.all.products.first
+    endif
+    assign variant = product.selected_or_first_available_variant
+  -%}
+
+  {%- if product == blank -%}
+    <button type="button" class="{{ classes }}" disabled>
+      {{- label -}}
+    </button>
+  {%- else -%}
+    {%- assign product_form_id = 'DsFeatureBanner-ProductForm-' | append: section_id -%}
+    <product-form-component
+      class="ds-feature-banner__form"
+      data-section-id="{{ section_id }}"
+      data-product-id="{{ product.id }}"
+      data-product-url="{{ product.url }}"
+      data-quantity-default="1"
+      on:submit="/handleSubmit"
+    >
+      <div
+        class="visually-hidden"
+        aria-live="assertive"
+        role="status"
+        aria-atomic="true"
+        ref="liveRegion"
+      ></div>
+      {%- form 'product', product, id: product_form_id, data-type: 'add-to-cart-form' -%}
+        <input
+          type="hidden"
+          name="id"
+          ref="variantId"
+          value="{{ variant.id }}"
+        >
+        <button
+          type="submit"
+          name="add"
+          class="{{ classes }}"
+          {% unless variant.available %}
+            disabled
+          {% endunless %}
+        >
+          {%- if variant.available -%}
+            {{- label -}}
+          {%- else -%}
+            {{- 'products.product.sold_out' | t -}}
+          {%- endif -%}
+        </button>
+      {%- endform -%}
+    </product-form-component>
+  {%- endif -%}
+
+{%- elsif settings.button_link != blank -%}
+  <a
+    href="{{ settings.button_link }}"
+    class="{{ classes }}"
+    {% if settings.open_in_new_tab %}
+      target="_blank" rel="noopener"
+    {% endif %}
+  >
+    {{- label -}}
+  </a>
+
+{%- elsif request.design_mode -%}
+  {%- comment -%} Keep the button visible in the editor so the merchant can still see and configure it. {%- endcomment -%}
+  <span class="{{ classes }} ds-feature-banner__button--placeholder">{{ label }}</span>
+{%- endif -%}

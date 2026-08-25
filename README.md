@@ -77,23 +77,19 @@ code. Setting **Typography → Custom heading font** to a family name takes
 precedence over the picker and suppresses the generated `@font-face`, so only
 one face is ever downloaded.
 
-#### The development store and this repository differ on purpose
+#### What is in this repository
 
-The development store renders the real Kessler Display, using the foundry's
-trial build, so the section can be evaluated against the comp. That is what a
-type trial is for: the store is password-protected, sells nothing, and has no
-audience.
+`assets/KesslerDisplay-Regular.otf` is the foundry's **trial** build, included
+so the section renders as designed on the development store without extra
+setup. [`snippets/ds-feature-banner-font.liquid`](snippets/ds-feature-banner-font.liquid)
+declares it, and the homepage instance selects it through the custom font
+field.
 
-The font file is **deliberately not committed**. Shipping it here would put it
-on the machine of everyone who clones, which is redistribution, and no trial
-license covers that. `.gitignore` excludes `assets/KesslerDisplay-*`.
-
-The consequence is that a fresh clone renders the heading in the fallback
-serif, because [`snippets/ds-feature-banner-font.liquid`](snippets/ds-feature-banner-font.liquid)
-points at an asset that is not there. To reproduce the store exactly, add a
-licensed `KesslerDisplay-Regular.otf` (or `.woff2`, adjusting the `format()`)
-to `assets/`. To drop Kessler entirely, clear the **Custom heading font**
-field and the section falls back to the picker.
+A trial build covers evaluation, not a production storefront. Before this goes
+anywhere real, replace the file with a licensed copy — same filename, or adjust
+the `format()` in the snippet if you swap to `.woff2`. Clearing the **Custom
+heading font** field drops Kessler entirely and returns the section to the font
+picker.
 
 ### The section loads its own font
 

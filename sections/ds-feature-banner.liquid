@@ -62,8 +62,14 @@
     --ds-banner-align-items: {{ align_items }};
     --ds-banner-card-image-width: {{ section.settings.card_image_width }}%;
 
-    --ds-banner-heading-font: var(--font-{{ section.settings.heading_font }}--family);
+    {% comment %} A typed family wins, so a self-hosted face can be used without touching theme settings. {% endcomment %}
+    {% if section.settings.heading_font_custom != blank %}
+      --ds-banner-heading-font: {{ section.settings.heading_font_custom }};
+    {% else %}
+      --ds-banner-heading-font: var(--font-{{ section.settings.heading_font }}--family);
+    {% endif %}
     --ds-banner-heading-size: {{ section.settings.heading_size }}px;
+    --ds-banner-body-size: {{ section.settings.body_size }}px;
 
     {% if section.settings.heading_color != blank %}--ds-banner-heading-color: {{ section.settings.heading_color }};{% endif %}
     {% if section.settings.body_color != blank %}--ds-banner-body-color: {{ section.settings.body_color }};{% endif %}
@@ -248,9 +254,11 @@
   .ds-feature-banner__heading {
     margin: 0;
     font-family: var(--ds-banner-heading-font, var(--font-heading--family));
-    font-size: clamp(1.75rem, 1.1rem + 2vw, var(--ds-banner-heading-size, 40px));
+    /* Scales down on narrow screens but never past the size set in the editor. */
+    font-size: clamp(1.75rem, 1.1rem + 2vw, var(--ds-banner-heading-size, 44px));
     font-weight: 400;
-    line-height: 1.15;
+    line-height: 1;
+    letter-spacing: 0;
     text-wrap: balance;
     color: var(--ds-banner-heading-color, currentcolor);
   }
@@ -258,7 +266,9 @@
   .ds-feature-banner__body {
     max-width: 46ch;
     font-family: var(--font-paragraph--family);
-    line-height: 1.5;
+    font-size: var(--ds-banner-body-size, 20px);
+    line-height: 1;
+    letter-spacing: 0;
     color: var(--ds-banner-body-color, currentcolor);
   }
 
@@ -623,6 +633,12 @@
       "default": "heading"
     },
     {
+      "type": "text",
+      "id": "heading_font_custom",
+      "label": "Custom heading font",
+      "info": "Optional. A CSS font-family value, for example: \"Kessler Display\", serif. Overrides the font above. The font itself must already be loaded by the theme."
+    },
+    {
       "type": "range",
       "id": "heading_size",
       "label": "Heading size",
@@ -630,7 +646,17 @@
       "max": 80,
       "step": 2,
       "unit": "px",
-      "default": 40
+      "default": 44
+    },
+    {
+      "type": "range",
+      "id": "body_size",
+      "label": "Body size",
+      "min": 12,
+      "max": 32,
+      "step": 1,
+      "unit": "px",
+      "default": 20
     },
     {
       "type": "color",

@@ -242,6 +242,23 @@
     }
   }
 
+  /* The editor's padding and gap are chosen against a desktop card. Carried
+     over verbatim they eat most of a phone's width, so they are capped here
+     rather than given their own settings. */
+  @media screen and (max-width: 749px) {
+    /* The inset frames the card against the photo on a wide screen. On a phone
+       it is margin the copy cannot spare, so it gives most of it back. */
+    .ds-feature-banner__layout {
+      padding: min(var(--ds-banner-card-inset, 48px), 16px);
+    }
+
+    .ds-feature-banner__card {
+      padding-inline: min(var(--ds-banner-card-padding-inline, 72px), 24px);
+      padding-block: min(var(--ds-banner-card-padding-block, 64px), 40px);
+      gap: min(var(--ds-banner-gap, 40px), 24px);
+    }
+  }
+
   /* A card with no backdrop behind it has nothing to float over, so let it breathe edge to edge. */
   .ds-feature-banner--no-backdrop .ds-feature-banner__layout {
     padding: 0;
@@ -289,7 +306,10 @@
     /* Arial is specified by the design, so it is pinned here rather than
        following the theme's paragraph token. */
     font-family: Arial, Helvetica, sans-serif;
-    font-size: var(--ds-banner-body-size, 19.92px);
+    /* Reaches the configured size from 750px up, where the design's 19.92px
+       applies, and eases off below that so it does not tower over a heading
+       that has already scaled down. */
+    font-size: clamp(1rem, 4vw, var(--ds-banner-body-size, 19.92px));
     font-weight: 400;
     line-height: 1;
     letter-spacing: 0;

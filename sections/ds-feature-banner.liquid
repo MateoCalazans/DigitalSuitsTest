@@ -276,15 +276,23 @@
     color: var(--ds-banner-heading-color, currentcolor);
   }
 
-  .ds-feature-banner__body {
-    max-width: 46ch;
+  /* The children are listed explicitly, not left to inherit: richtext emits
+     real <p> elements, and any theme rule that targets them directly beats an
+     inherited value no matter how specific the container's rule is. */
+  .ds-feature-banner__body,
+  .ds-feature-banner__body :is(p, li, span, em, strong, a) {
     /* Arial is specified by the design, so it is pinned here rather than
        following the theme's paragraph token. */
     font-family: Arial, Helvetica, sans-serif;
     font-size: var(--ds-banner-body-size, 19.92px);
+    font-weight: 400;
     line-height: 1;
     letter-spacing: 0;
     color: var(--ds-banner-body-color, currentcolor);
+  }
+
+  .ds-feature-banner__body {
+    max-width: 46ch;
   }
 
   .ds-feature-banner__body > :first-child {
@@ -679,13 +687,13 @@
       "type": "color",
       "id": "heading_color",
       "label": "Heading color",
-      "default": "#1a1a1a"
+      "default": "#171717"
     },
     {
       "type": "color",
       "id": "body_color",
       "label": "Body color",
-      "default": "#6e6e6e"
+      "default": "#666666"
     },
     {
       "type": "color",

@@ -13,7 +13,10 @@
   assign classes = 'ds-feature-banner__button ds-feature-banner__button--' | append: settings.button_style
 -%}
 
-{%- if settings.button_action == 'add_to_cart' -%}
+{%- if settings.show_button == false -%}
+  {%- comment -%} Hidden by the merchant. Nothing renders, not even in the editor. {%- endcomment -%}
+
+{%- elsif settings.button_action == 'add_to_cart' -%}
   {%- liquid
     assign product = settings.product
     if request.visual_preview_mode and product == blank

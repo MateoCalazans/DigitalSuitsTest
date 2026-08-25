@@ -6,8 +6,7 @@
  * or related systems. Please exercise caution as any changes
  * made to this file may be overwritten.
  * ------------------------------------------------------------
- */
-{
+ */{
   "sections": {
     "hero_jVaWmY": {
       "type": "hero",
@@ -17,6 +16,7 @@
           "name": "t:names.heading",
           "settings": {
             "text": "<p>Browse our latest products</p>",
+            "text_color": "{{ settings.color_palette.background }}",
             "width": "fit-content",
             "max_width": "normal",
             "alignment": "left",
@@ -27,7 +27,6 @@
             "letter_spacing": "normal",
             "case": "none",
             "wrap": "pretty",
-            "text_color": "{{ settings.color_palette.background }}",
             "background": false,
             "background_color": "#00000026",
             "corner_radius": 0,
@@ -287,12 +286,15 @@
         "button_action": "link",
         "button_link": "shopify://collections/all",
         "button_style": "link",
-        "button_text_color": "#8c2a2a",
         "card_horizontal_position": "flex-end",
         "card_vertical_position": "stretch",
         "text_alignment": "center",
+        "card_background_color": "#e3e0db",
         "section_height": "large",
-        "card_background_color": "#e3e0db"
+        "heading_font_custom": "\"Kessler Display\", serif",
+        "heading_color": "#171717",
+        "body_color": "#666666",
+        "button_background_color": "#841719"
       }
     }
   },

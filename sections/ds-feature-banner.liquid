@@ -39,9 +39,12 @@
 -%}
 
 {%- comment -%}
-  Loads the picked face from Shopify's font library. Without this the family
-  name resolves but the browser has no file to render it with.
+  Two ways to get a face in front of the browser: the self-hosted declaration,
+  and the one Shopify generates for a picked library font. Without either, a
+  family name resolves but has no file behind it. The library face is skipped
+  when a custom family is set, so only one of the two is ever fetched.
 {%- endcomment -%}
+{%- render 'ds-feature-banner-font' -%}
 {%- unless section.settings.heading_font_custom != blank -%}
   {% style %}
     {{ section.settings.heading_font | font_face: font_display: 'swap' }}

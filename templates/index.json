@@ -291,7 +291,8 @@
         "card_vertical_position": "stretch",
         "text_alignment": "center",
         "card_background_color": "#e3e0db",
-        "section_height": "large"
+        "section_height": "large",
+        "heading_font_custom": "\"Kessler Display\", serif"
       }
     }
   },

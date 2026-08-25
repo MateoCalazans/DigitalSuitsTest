@@ -1,0 +1,24 @@
+{%- doc -%}
+  Declares the self-hosted heading face used by the DS Feature Banner.
+
+  Emitted unconditionally: a browser only downloads a font file when some
+  rule actually matches it, so this costs nothing while the section is
+  using a face from Shopify's library instead.
+
+  The file is deliberately absent from version control, so this resolves to
+  a 404 on a checkout that has not had the licensed font added. That is
+  harmless - the heading falls back to the generic serif in the stack.
+
+  @example
+  {% render 'ds-feature-banner-font' %}
+{%- enddoc -%}
+
+{% style %}
+  @font-face {
+    font-family: "Kessler Display";
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+    src: url({{ 'KesslerDisplay-Regular.otf' | asset_url }}) format("opentype");
+  }
+{% endstyle %}

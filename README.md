@@ -71,15 +71,29 @@ from €80 per style, and it is absent from Shopify's font library, so
 trial builds redistributed without the foundry's permission and carry a
 "personal use only" license, which does not cover a storefront.
 
-The section therefore ships with **Playfair Display** from Shopify's library
-and is built so the licensed face can be dropped in without touching code:
+The section therefore ships with **Playfair Display** from Shopify's library as
+its default, and is built so a licensed face can take over without touching
+code. Setting **Typography → Custom heading font** to a family name takes
+precedence over the picker and suppresses the generated `@font-face`, so only
+one face is ever downloaded.
 
-1. Add the licensed `.woff2` to `assets/`.
-2. Load it with an `@font-face` rule.
-3. Set **Typography → Custom heading font** to `"Kessler Display", serif`.
+#### The development store and this repository differ on purpose
 
-That field takes precedence over the font picker and suppresses the generated
-`@font-face`, so no second font is downloaded.
+The development store renders the real Kessler Display, using the foundry's
+trial build, so the section can be evaluated against the comp. That is what a
+type trial is for: the store is password-protected, sells nothing, and has no
+audience.
+
+The font file is **deliberately not committed**. Shipping it here would put it
+on the machine of everyone who clones, which is redistribution, and no trial
+license covers that. `.gitignore` excludes `assets/KesslerDisplay-*`.
+
+The consequence is that a fresh clone renders the heading in the fallback
+serif, because [`snippets/ds-feature-banner-font.liquid`](snippets/ds-feature-banner-font.liquid)
+points at an asset that is not there. To reproduce the store exactly, add a
+licensed `KesslerDisplay-Regular.otf` (or `.woff2`, adjusting the `format()`)
+to `assets/`. To drop Kessler entirely, clear the **Custom heading font**
+field and the section falls back to the picker.
 
 ### The section loads its own font
 

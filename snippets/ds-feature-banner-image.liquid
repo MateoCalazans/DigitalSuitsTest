@@ -1,0 +1,22 @@
+{%- doc -%}
+  Renders the product image that sits inside the DS Feature Banner card.
+
+  @param {object} image - The image object from an image_picker setting
+
+  @example
+  {% render 'ds-feature-banner-image', image: section.settings.card_image %}
+{%- enddoc -%}
+
+<div class="ds-feature-banner__card-media">
+  {{
+    image
+    | image_url: width: 1200
+    | image_tag:
+      width: image.width,
+      height: image.height,
+      widths: '200, 300, 400, 600, 800, 1200',
+      sizes: '(min-width: 750px) 30vw, 60vw',
+      alt: image.alt,
+      class: 'ds-feature-banner__card-image'
+  }}
+</div>

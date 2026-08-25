@@ -265,7 +265,9 @@
 
   .ds-feature-banner__body {
     max-width: 46ch;
-    font-family: var(--font-paragraph--family);
+    /* Arial is specified by the design, so it is pinned here rather than
+       following the theme's paragraph token. */
+    font-family: Arial, Helvetica, sans-serif;
     font-size: var(--ds-banner-body-size, 20px);
     line-height: 1;
     letter-spacing: 0;
@@ -293,7 +295,8 @@
     padding: 0.9375rem 2.25rem;
     border: 1px solid transparent;
     border-radius: var(--style-border-radius-buttons-primary, 0);
-    font-family: var(--font-body--family);
+    /* Matches the body copy, per the design. */
+    font-family: Arial, Helvetica, sans-serif;
     font-size: 1rem;
     font-weight: 400;
     line-height: 1;

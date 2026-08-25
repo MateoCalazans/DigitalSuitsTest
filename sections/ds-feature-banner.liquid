@@ -82,7 +82,7 @@
       --ds-banner-heading-font: {{ section.settings.heading_font.family }}, {{ section.settings.heading_font.fallback_families }};
     {% endif %}
     --ds-banner-heading-size: {{ section.settings.heading_size }}px;
-    --ds-banner-body-size: {{ section.settings.body_size }}px;
+    {% if section.settings.body_size != blank %}--ds-banner-body-size: {{ section.settings.body_size }}px;{% endif %}
 
     {% if section.settings.heading_color != blank %}--ds-banner-heading-color: {{ section.settings.heading_color }};{% endif %}
     {% if section.settings.body_color != blank %}--ds-banner-body-color: {{ section.settings.body_color }};{% endif %}
@@ -276,15 +276,23 @@
     color: var(--ds-banner-heading-color, currentcolor);
   }
 
-  .ds-feature-banner__body {
-    max-width: 46ch;
+  /* The children are listed explicitly, not left to inherit: richtext emits
+     real <p> elements, and any theme rule that targets them directly beats an
+     inherited value no matter how specific the container's rule is. */
+  .ds-feature-banner__body,
+  .ds-feature-banner__body :is(p, li, span, em, strong, a) {
     /* Arial is specified by the design, so it is pinned here rather than
        following the theme's paragraph token. */
     font-family: Arial, Helvetica, sans-serif;
-    font-size: var(--ds-banner-body-size, 20px);
+    font-size: var(--ds-banner-body-size, 19.92px);
+    font-weight: 400;
     line-height: 1;
     letter-spacing: 0;
     color: var(--ds-banner-body-color, currentcolor);
+  }
+
+  .ds-feature-banner__body {
+    max-width: 46ch;
   }
 
   .ds-feature-banner__body > :first-child {
@@ -327,21 +335,24 @@
     cursor: not-allowed;
   }
 
+  /* Each style falls back to what reads correctly on it, so leaving the text
+     color unset is always a sane result. */
+
   .ds-feature-banner__button--primary {
-    background-color: var(--ds-banner-button-bg, var(--color-foreground));
-    color: var(--ds-banner-button-color, var(--color-background));
+    background-color: var(--ds-banner-button-bg, #841719);
+    color: var(--ds-banner-button-color, #ffffff);
   }
 
   .ds-feature-banner__button--secondary {
     background-color: transparent;
-    border-color: var(--ds-banner-button-bg, currentcolor);
-    color: var(--ds-banner-button-color, currentcolor);
+    border-color: var(--ds-banner-button-bg, #841719);
+    color: var(--ds-banner-button-color, #841719);
   }
 
   .ds-feature-banner__button--link {
     padding: 0;
     background-color: transparent;
-    color: var(--ds-banner-button-color, currentcolor);
+    color: var(--ds-banner-button-color, #841719);
     text-decoration: underline;
     text-underline-offset: 0.3em;
   }
@@ -431,10 +442,17 @@
       "content": "Button"
     },
     {
+      "type": "checkbox",
+      "id": "show_button",
+      "label": "Show button",
+      "default": true
+    },
+    {
       "type": "text",
       "id": "button_label",
       "label": "Label",
-      "default": "Shop Men"
+      "default": "Shop Men",
+      "visible_if": "{{ section.settings.show_button }}"
     },
     {
       "type": "select",
@@ -480,14 +498,15 @@
       "type": "color",
       "id": "button_background_color",
       "label": "Button background",
-      "placeholder": "Default",
+      "default": "#841719",
       "visible_if": "{{ section.settings.button_style != 'link' }}"
     },
     {
       "type": "color",
       "id": "button_text_color",
       "label": "Button text",
-      "default": "#8c2a2a"
+      "placeholder": "Default",
+      "info": "Defaults per style: the design's red for underlined text, white on a solid button."
     },
     {
       "type": "header",
@@ -659,26 +678,22 @@
       "default": 44
     },
     {
-      "type": "range",
+      "type": "number",
       "id": "body_size",
-      "label": "Body size",
-      "min": 12,
-      "max": 32,
-      "step": 1,
-      "unit": "px",
-      "default": 20
+      "label": "Body size (px)",
+      "info": "Leave empty to use the design's 19.92px."
     },
     {
       "type": "color",
       "id": "heading_color",
       "label": "Heading color",
-      "default": "#1a1a1a"
+      "default": "#171717"
     },
     {
       "type": "color",
       "id": "body_color",
       "label": "Body color",
-      "default": "#6e6e6e"
+      "default": "#666666"
     },
     {
       "type": "color",

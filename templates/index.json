@@ -286,13 +286,15 @@
         "button_action": "link",
         "button_link": "shopify://collections/all",
         "button_style": "link",
-        "button_text_color": "#8c2a2a",
         "card_horizontal_position": "flex-end",
         "card_vertical_position": "stretch",
         "text_alignment": "center",
         "card_background_color": "#e3e0db",
         "section_height": "large",
-        "heading_font_custom": "\"Kessler Display\", serif"
+        "heading_font_custom": "\"Kessler Display\", serif",
+        "heading_color": "#171717",
+        "body_color": "#666666",
+        "button_background_color": "#841719"
       }
     }
   },

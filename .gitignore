@@ -5,7 +5,3 @@ node_modules/
 .env
 .DS_Store
 Thumbs.db
-
-# Licensed and trial font files. These are deployed to the store but must not
-# be redistributed through the repository. See README.md.
-assets/KesslerDisplay-*

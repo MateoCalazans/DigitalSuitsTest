@@ -75,11 +75,16 @@
     --ds-banner-align-items: {{ align_items }};
     --ds-banner-card-image-width: {{ section.settings.card_image_width }}%;
 
-    {% comment %} A typed family wins, so a self-hosted face can be used without touching theme settings. {% endcomment %}
+    {% comment %}
+      A typed family wins, so a self-hosted face can be used without touching
+      theme settings. Both branches are escaped: a family name with a space in
+      it arrives quoted, and a raw double quote here would close this very
+      attribute and discard every declaration below it.
+    {% endcomment %}
     {% if section.settings.heading_font_custom != blank %}
-      --ds-banner-heading-font: {{ section.settings.heading_font_custom }};
+      --ds-banner-heading-font: {{ section.settings.heading_font_custom | escape }};
     {% else %}
-      --ds-banner-heading-font: {{ section.settings.heading_font.family }}, {{ section.settings.heading_font.fallback_families }};
+      --ds-banner-heading-font: {{ section.settings.heading_font.family | escape }}, {{ section.settings.heading_font.fallback_families | escape }};
     {% endif %}
     --ds-banner-heading-size: {{ section.settings.heading_size }}px;
     {% if section.settings.body_size != blank %}--ds-banner-body-size: {{ section.settings.body_size }}px;{% endif %}

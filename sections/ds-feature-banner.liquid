@@ -1,65 +1,97 @@
 {%- liquid
-  assign s = section.settings
-
+  # Is there a photo behind the card?
   assign has_backdrop = false
-  if s.backdrop_image != blank or s.backdrop_image_mobile != blank
+  if section.settings.backdrop_image != blank or section.settings.backdrop_image_mobile != blank
     assign has_backdrop = true
   endif
 
-  assign backdrop_desktop = s.backdrop_image | default: s.backdrop_image_mobile
-  assign backdrop_mobile = s.backdrop_image_mobile | default: s.backdrop_image
+  # Either backdrop slot can stand in for the other, so only one is required.
+  assign backdrop_desktop = section.settings.backdrop_image | default: section.settings.backdrop_image_mobile
+  assign backdrop_mobile = section.settings.backdrop_image_mobile | default: section.settings.backdrop_image
 
+  # A banner at the top of the page is almost always the largest contentful paint.
   assign fetch_priority = 'auto'
   if section.index == 1
     assign fetch_priority = 'high'
   endif
 
   # The card is a flex column, so text alignment also has to drive how children line up.
-  case s.text_alignment
+  case section.settings.text_alignment
     when 'left'
-      assign text_align_items = 'flex-start'
+      assign align_items = 'flex-start'
     when 'right'
-      assign text_align_items = 'flex-end'
+      assign align_items = 'flex-end'
     else
-      assign text_align_items = 'center'
+      assign align_items = 'center'
+  endcase
+
+  # How tall the section is. "auto" lets the card's own content decide.
+  case section.settings.section_height
+    when 'auto'
+      assign min_height = 'auto'
+    when 'custom'
+      assign min_height = section.settings.section_height_custom | append: 'svh'
+    when 'full-screen'
+      assign min_height = '100svh'
+    else
+      assign min_height = 'var(--section-height-' | append: section.settings.section_height | append: ')'
   endcase
 -%}
+
+{%- comment -%}
+  Two ways to get a face in front of the browser: the self-hosted declaration,
+  and the one Shopify generates for a picked library font. Without either, a
+  family name resolves but has no file behind it. The library face is skipped
+  when a custom family is set, so only one of the two is ever fetched.
+{%- endcomment -%}
+{%- render 'ds-feature-banner-font' -%}
+{%- unless section.settings.heading_font_custom != blank -%}
+  {% style %}
+    {{ section.settings.heading_font | font_face: font_display: 'swap' }}
+  {% endstyle %}
+{%- endunless -%}
 
 <div
   class="
     ds-feature-banner
-    ds-feature-banner--card-{{ s.card_horizontal_position }}
     {% unless has_backdrop %}ds-feature-banner--no-backdrop{% endunless %}
   "
   style="
-    --ds-banner-card-x: {{ s.card_horizontal_position }};
-    --ds-banner-card-y: {{ s.card_vertical_position }};
-    --ds-banner-card-width: {{ s.card_width }}%;
-    --ds-banner-card-width-mobile: {{ s.card_width_mobile }}%;
-    --ds-banner-card-bg: {{ s.card_background_color }};
-    --ds-banner-card-radius: {{ s.card_corner_radius }}px;
-    --ds-banner-card-padding-inline: {{ s.card_padding_inline }}px;
-    --ds-banner-card-padding-block: {{ s.card_padding_block }}px;
-    --ds-banner-inset: {{ s.card_inset }}px;
-    --ds-banner-gap: {{ s.content_gap }}px;
-    --ds-banner-text-align: {{ s.text_alignment }};
-    --ds-banner-text-align-items: {{ text_align_items }};
-    --ds-banner-card-image-width: {{ s.card_image_width }}%;
-    {% if s.heading_color != blank %}--ds-banner-heading-color: {{ s.heading_color }};{% endif %}
-    {% if s.body_color != blank %}--ds-banner-body-color: {{ s.body_color }};{% endif %}
-    {% if s.eyebrow_color != blank %}--ds-banner-eyebrow-color: {{ s.eyebrow_color }};{% endif %}
-    {% if s.button_text_color != blank %}--ds-banner-button-color: {{ s.button_text_color }};{% endif %}
-    {% if s.button_background_color != blank %}--ds-banner-button-bg: {{ s.button_background_color }};{% endif %}
-    --ds-banner-heading-font: var(--font-{{ s.heading_font }}--family);
-    --ds-banner-heading-size: {{ s.heading_size }}px;
-    {% if s.overlay_color != blank %}--ds-banner-overlay: {{ s.overlay_color }};{% endif %}
-    {% case s.section_height %}
-      {% when 'custom' %}--ds-banner-min-height: {{ s.section_height_custom }}svh;
-      {% when 'full-screen' %}--ds-banner-min-height: 100svh;
-      {% when 'auto' %}--ds-banner-min-height: auto;
-      {% else %}--ds-banner-min-height: var(--section-height-{{ s.section_height }});
-    {% endcase %}
-    {% render 'spacing-style', settings: s %}
+    --ds-banner-min-height: {{ min_height }};
+
+    --ds-banner-card-x: {{ section.settings.card_horizontal_position }};
+    --ds-banner-card-y: {{ section.settings.card_vertical_position }};
+    --ds-banner-card-width: {{ section.settings.card_width }}%;
+    --ds-banner-card-width-mobile: {{ section.settings.card_width_mobile }}%;
+    --ds-banner-card-inset: {{ section.settings.card_inset }}px;
+
+    --ds-banner-card-bg: {{ section.settings.card_background_color }};
+    --ds-banner-card-radius: {{ section.settings.card_corner_radius }}px;
+    --ds-banner-card-padding-inline: {{ section.settings.card_padding_inline }}px;
+    --ds-banner-card-padding-block: {{ section.settings.card_padding_block }}px;
+
+    --ds-banner-gap: {{ section.settings.content_gap }}px;
+    --ds-banner-text-align: {{ section.settings.text_alignment }};
+    --ds-banner-align-items: {{ align_items }};
+    --ds-banner-card-image-width: {{ section.settings.card_image_width }}%;
+
+    {% comment %} A typed family wins, so a self-hosted face can be used without touching theme settings. {% endcomment %}
+    {% if section.settings.heading_font_custom != blank %}
+      --ds-banner-heading-font: {{ section.settings.heading_font_custom }};
+    {% else %}
+      --ds-banner-heading-font: {{ section.settings.heading_font.family }}, {{ section.settings.heading_font.fallback_families }};
+    {% endif %}
+    --ds-banner-heading-size: {{ section.settings.heading_size }}px;
+    {% if section.settings.body_size != blank %}--ds-banner-body-size: {{ section.settings.body_size }}px;{% endif %}
+
+    {% if section.settings.heading_color != blank %}--ds-banner-heading-color: {{ section.settings.heading_color }};{% endif %}
+    {% if section.settings.body_color != blank %}--ds-banner-body-color: {{ section.settings.body_color }};{% endif %}
+    {% if section.settings.eyebrow_color != blank %}--ds-banner-eyebrow-color: {{ section.settings.eyebrow_color }};{% endif %}
+    {% if section.settings.button_text_color != blank %}--ds-banner-button-color: {{ section.settings.button_text_color }};{% endif %}
+    {% if section.settings.button_background_color != blank %}--ds-banner-button-bg: {{ section.settings.button_background_color }};{% endif %}
+    {% if section.settings.overlay_color != blank %}--ds-banner-overlay: {{ section.settings.overlay_color }};{% endif %}
+
+    {% render 'spacing-style', settings: section.settings %}
   "
   {% if request.visual_preview_mode %}
     data-shopify-visual-preview
@@ -67,7 +99,7 @@
 >
   {%- if has_backdrop -%}
     <div class="ds-feature-banner__backdrop">
-      {%- if s.backdrop_image != blank and s.backdrop_image_mobile != blank -%}
+      {%- if section.settings.backdrop_image != blank and section.settings.backdrop_image_mobile != blank -%}
         <picture>
           <source
             media="(max-width: 749px)"
@@ -103,7 +135,7 @@
         }}
       {%- endif -%}
 
-      {%- if s.overlay_color != blank -%}
+      {%- if section.settings.overlay_color != blank -%}
         <div class="ds-feature-banner__overlay"></div>
       {%- endif -%}
     </div>
@@ -111,27 +143,27 @@
 
   <div class="ds-feature-banner__layout">
     <div class="ds-feature-banner__card">
-      {%- if s.card_image != blank and s.card_image_position == 'top' -%}
-        {%- render 'ds-feature-banner-image', image: s.card_image -%}
+      {%- if section.settings.card_image != blank and section.settings.card_image_position == 'top' -%}
+        {%- render 'ds-feature-banner-image', image: section.settings.card_image -%}
       {%- endif -%}
 
-      {%- if s.eyebrow != blank -%}
-        <p class="ds-feature-banner__eyebrow">{{ s.eyebrow }}</p>
+      {%- if section.settings.eyebrow != blank -%}
+        <p class="ds-feature-banner__eyebrow">{{ section.settings.eyebrow }}</p>
       {%- endif -%}
 
-      {%- if s.heading != blank -%}
-        <h2 class="ds-feature-banner__heading">{{ s.heading }}</h2>
+      {%- if section.settings.heading != blank -%}
+        <h2 class="ds-feature-banner__heading">{{ section.settings.heading }}</h2>
       {%- endif -%}
 
-      {%- if s.body != blank -%}
-        <div class="ds-feature-banner__body">{{ s.body }}</div>
+      {%- if section.settings.body != blank -%}
+        <div class="ds-feature-banner__body">{{ section.settings.body }}</div>
       {%- endif -%}
 
-      {%- if s.card_image != blank and s.card_image_position == 'bottom' -%}
-        {%- render 'ds-feature-banner-image', image: s.card_image -%}
+      {%- if section.settings.card_image != blank and section.settings.card_image_position == 'bottom' -%}
+        {%- render 'ds-feature-banner-image', image: section.settings.card_image -%}
       {%- endif -%}
 
-      {%- render 'ds-feature-banner-button', settings: s, section_id: section.id -%}
+      {%- render 'ds-feature-banner-button', settings: section.settings, section_id: section.id -%}
     </div>
   </div>
 </div>
@@ -183,14 +215,14 @@
     justify-content: var(--ds-banner-card-x, flex-end);
     align-items: var(--ds-banner-card-y, stretch);
     min-height: inherit;
-    padding: var(--ds-banner-inset, 48px);
+    padding: var(--ds-banner-card-inset, 48px);
   }
 
   .ds-feature-banner__card {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    align-items: var(--ds-banner-text-align-items, center);
+    align-items: var(--ds-banner-align-items, center);
     gap: var(--ds-banner-gap, 40px);
     width: var(--ds-banner-card-width-mobile, 100%);
     padding: var(--ds-banner-card-padding-block, 64px) var(--ds-banner-card-padding-inline, 72px);
@@ -235,17 +267,23 @@
   .ds-feature-banner__heading {
     margin: 0;
     font-family: var(--ds-banner-heading-font, var(--font-heading--family));
-    font-size: clamp(1.75rem, 1.1rem + 2vw, var(--ds-banner-heading-size, 40px));
+    /* Scales down on narrow screens but never past the size set in the editor. */
+    font-size: clamp(1.75rem, 1.1rem + 2vw, var(--ds-banner-heading-size, 44px));
     font-weight: 400;
-    line-height: 1.15;
+    line-height: 1;
+    letter-spacing: 0;
     text-wrap: balance;
     color: var(--ds-banner-heading-color, currentcolor);
   }
 
   .ds-feature-banner__body {
     max-width: 46ch;
-    font-family: var(--font-paragraph--family);
-    line-height: 1.5;
+    /* Arial is specified by the design, so it is pinned here rather than
+       following the theme's paragraph token. */
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: var(--ds-banner-body-size, 19.92px);
+    line-height: 1;
+    letter-spacing: 0;
     color: var(--ds-banner-body-color, currentcolor);
   }
 
@@ -270,7 +308,8 @@
     padding: 0.9375rem 2.25rem;
     border: 1px solid transparent;
     border-radius: var(--style-border-radius-buttons-primary, 0);
-    font-family: var(--font-body--family);
+    /* Matches the body copy, per the design. */
+    font-family: Arial, Helvetica, sans-serif;
     font-size: 1rem;
     font-weight: 400;
     line-height: 1;
@@ -288,21 +327,24 @@
     cursor: not-allowed;
   }
 
+  /* Each style falls back to what reads correctly on it, so leaving the text
+     color unset is always a sane result. */
+
   .ds-feature-banner__button--primary {
-    background-color: var(--ds-banner-button-bg, var(--color-foreground));
-    color: var(--ds-banner-button-color, var(--color-background));
+    background-color: var(--ds-banner-button-bg, #841719);
+    color: var(--ds-banner-button-color, #ffffff);
   }
 
   .ds-feature-banner__button--secondary {
     background-color: transparent;
-    border-color: var(--ds-banner-button-bg, currentcolor);
-    color: var(--ds-banner-button-color, currentcolor);
+    border-color: var(--ds-banner-button-bg, #841719);
+    color: var(--ds-banner-button-color, #841719);
   }
 
   .ds-feature-banner__button--link {
     padding: 0;
     background-color: transparent;
-    color: var(--ds-banner-button-color, currentcolor);
+    color: var(--ds-banner-button-color, #841719);
     text-decoration: underline;
     text-underline-offset: 0.3em;
   }
@@ -392,10 +434,17 @@
       "content": "Button"
     },
     {
+      "type": "checkbox",
+      "id": "show_button",
+      "label": "Show button",
+      "default": true
+    },
+    {
       "type": "text",
       "id": "button_label",
       "label": "Label",
-      "default": "Shop Men"
+      "default": "Shop Men",
+      "visible_if": "{{ section.settings.show_button }}"
     },
     {
       "type": "select",
@@ -441,14 +490,15 @@
       "type": "color",
       "id": "button_background_color",
       "label": "Button background",
-      "placeholder": "Default",
+      "default": "#841719",
       "visible_if": "{{ section.settings.button_style != 'link' }}"
     },
     {
       "type": "color",
       "id": "button_text_color",
       "label": "Button text",
-      "default": "#8c2a2a"
+      "placeholder": "Default",
+      "info": "Defaults per style: the design's red for underlined text, white on a solid button."
     },
     {
       "type": "header",
@@ -598,16 +648,16 @@
       "content": "Typography"
     },
     {
-      "type": "select",
+      "type": "font_picker",
       "id": "heading_font",
       "label": "Heading font",
-      "options": [
-        { "value": "heading", "label": "Heading" },
-        { "value": "body", "label": "Body" },
-        { "value": "subheading", "label": "Subheading" },
-        { "value": "accent", "label": "Accent" }
-      ],
-      "default": "heading"
+      "default": "playfair_display_n4"
+    },
+    {
+      "type": "text",
+      "id": "heading_font_custom",
+      "label": "Custom heading font",
+      "info": "Optional. A CSS font-family value, for example: \"Kessler Display\", serif. Overrides the font above. The font itself must already be loaded by the theme."
     },
     {
       "type": "range",
@@ -617,7 +667,13 @@
       "max": 80,
       "step": 2,
       "unit": "px",
-      "default": 40
+      "default": 44
+    },
+    {
+      "type": "number",
+      "id": "body_size",
+      "label": "Body size (px)",
+      "info": "Leave empty to use the design's 19.92px."
     },
     {
       "type": "color",

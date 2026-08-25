@@ -38,6 +38,16 @@
   endcase
 -%}
 
+{%- comment -%}
+  Loads the picked face from Shopify's font library. Without this the family
+  name resolves but the browser has no file to render it with.
+{%- endcomment -%}
+{%- unless section.settings.heading_font_custom != blank -%}
+  {% style %}
+    {{ section.settings.heading_font | font_face: font_display: 'swap' }}
+  {% endstyle %}
+{%- endunless -%}
+
 <div
   class="
     ds-feature-banner
@@ -66,7 +76,7 @@
     {% if section.settings.heading_font_custom != blank %}
       --ds-banner-heading-font: {{ section.settings.heading_font_custom }};
     {% else %}
-      --ds-banner-heading-font: var(--font-{{ section.settings.heading_font }}--family);
+      --ds-banner-heading-font: {{ section.settings.heading_font.family }}, {{ section.settings.heading_font.fallback_families }};
     {% endif %}
     --ds-banner-heading-size: {{ section.settings.heading_size }}px;
     --ds-banner-body-size: {{ section.settings.body_size }}px;
@@ -624,16 +634,10 @@
       "content": "Typography"
     },
     {
-      "type": "select",
+      "type": "font_picker",
       "id": "heading_font",
       "label": "Heading font",
-      "options": [
-        { "value": "heading", "label": "Heading" },
-        { "value": "body", "label": "Body" },
-        { "value": "subheading", "label": "Subheading" },
-        { "value": "accent", "label": "Accent" }
-      ],
-      "default": "heading"
+      "default": "playfair_display_n4"
     },
     {
       "type": "text",

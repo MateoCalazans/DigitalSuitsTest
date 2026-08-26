@@ -1,0 +1,8 @@
+{
+  "buyerJourney": {"step": "CHECKOUT_COMPLETION"},
+  "cart": {
+    "registrationNumber": {"value": "UA1234567890"},
+    "deliveryGroups": [{"deliveryAddress": {"company": "DigitalSuits"}}],
+    "billingAddress": null
+  }
+}

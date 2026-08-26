@@ -3,7 +3,10 @@ query CartValidationsGenerateRunInput {
     step
   }
   cart {
-    registrationNumber: attribute(key: "business_registration_number") {
+    registrationNumber: metafield(
+      namespace: "$app:business"
+      key: "registration_number"
+    ) {
       value
     }
     deliveryGroups {

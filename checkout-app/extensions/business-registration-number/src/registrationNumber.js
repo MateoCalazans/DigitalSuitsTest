@@ -5,7 +5,11 @@
  * The same rule is enforced server side by the validation function in
  * extensions/business-registration-validation. Keep the two in sync.
  */
-export const ATTRIBUTE_KEY = 'business_registration_number';
+export const METAFIELD_NAMESPACE = '$app:business';
+
+export const METAFIELD_KEY = 'registration_number';
+
+export const METAFIELD_TYPE = 'single_line_text_field';
 
 export const FORMAT = /^UA\d{8,10}$/;
 

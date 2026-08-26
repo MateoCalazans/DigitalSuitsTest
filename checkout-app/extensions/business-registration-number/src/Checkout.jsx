@@ -1,8 +1,15 @@
 import '@shopify/ui-extensions/preact';
 import {render} from 'preact';
-import {useEffect, useState} from 'preact/hooks';
+import {useEffect, useRef, useState} from 'preact/hooks';
 
-import {ATTRIBUTE_KEY, FORMAT, MAX_LENGTH, sanitize} from './registrationNumber.js';
+import {
+  FORMAT,
+  MAX_LENGTH,
+  METAFIELD_KEY,
+  METAFIELD_NAMESPACE,
+  METAFIELD_TYPE,
+  sanitize,
+} from './registrationNumber.js';
 
 /**
  * The checkout hands every extension a global `shopify` object, but the type it
@@ -22,27 +29,55 @@ function BusinessRegistrationNumber() {
   // Reading a signal inside the component body subscribes to it, so the field
   // appears and disappears as the buyer edits the Company line of the address.
   const company = (api.shippingAddress?.value?.company ?? '').trim();
-  const stored = api.attributes.value.find(({key}) => key === ATTRIBUTE_KEY)?.value ?? '';
 
-  // Null until the buyer types, so the field picks up an attribute that arrives
-  // after the first render — coming back to this step, or a reloaded checkout.
-  const [draft, setDraft] = useState(/** @type {string | null} */ (null));
+  const [value, setValue] = useState('');
   const [showError, setShowError] = useState(false);
 
-  const value = draft ?? stored;
+  // What the cart is believed to hold. The checkout offers no signal for
+  // reading a cart metafield back, so the extension tracks its own writes.
+  const written = useRef('');
+
+  /**
+   * @param {string} next
+   */
+  async function persist(next) {
+    if (written.current === next) return;
+    written.current = next;
+
+    const result = await api.applyMetafieldChange(
+      next === ''
+        ? {
+            type: 'removeCartMetafield',
+            namespace: METAFIELD_NAMESPACE,
+            key: METAFIELD_KEY,
+          }
+        : {
+            type: 'updateCartMetafield',
+            metafield: {
+              namespace: METAFIELD_NAMESPACE,
+              key: METAFIELD_KEY,
+              type: METAFIELD_TYPE,
+              value: next,
+            },
+          },
+    );
+
+    if (result.type === 'error') {
+      // Let the write be retried rather than silently assumed to have landed.
+      written.current = '';
+      console.error(result.message);
+    }
+  }
 
   // A cleared Company line means the order is no longer a business one, so the
   // number that was collected for it shouldn't ride along on the order.
   useEffect(() => {
     if (company !== '') return;
 
-    setDraft(null);
+    setValue('');
     setShowError(false);
-
-    if (stored !== '') {
-      persist('');
-    }
-  }, [company, stored]);
+    persist('');
+  }, [company]);
 
   if (company === '') return null;
 
@@ -50,7 +85,7 @@ function BusinessRegistrationNumber() {
 
   return (
     <s-text-field
-      name={ATTRIBUTE_KEY}
+      name={METAFIELD_KEY}
       label={api.i18n.translate('label')}
       value={value}
       maxLength={MAX_LENGTH}
@@ -64,14 +99,19 @@ function BusinessRegistrationNumber() {
         // and the rejected characters would stay on screen. Write it back.
         field.value = next;
 
-        setDraft(next);
+        setValue(next);
         // Stop flagging the field while the buyer is busy correcting it.
         if (showError) setShowError(false);
+
+        // Save the moment the number is complete. Waiting for the field to lose
+        // focus would race the buyer pressing Continue, and the checkout would
+        // be validated against a cart that hasn't heard about the value yet.
+        if (FORMAT.test(next)) persist(next);
       }}
       onChange={(event) => {
         const next = sanitize(fieldOf(event).value ?? '');
 
-        setDraft(next);
+        setValue(next);
         setShowError(true);
         persist(next);
       }}
@@ -88,25 +128,6 @@ function errorFor(value) {
   if (value === '') return api.i18n.translate('errorRequired');
   if (!FORMAT.test(value)) return api.i18n.translate('errorFormat');
   return undefined;
-}
-
-/**
- * Mirrors the field into a cart attribute. That attribute is what the merchant
- * sees on the order in the admin, and what the validation function reads when
- * the buyer presses "Continue to shipping" or "Pay".
- *
- * @param {string} value
- */
-async function persist(value) {
-  const result = await api.applyAttributeChange(
-    value === ''
-      ? {type: 'removeAttribute', key: ATTRIBUTE_KEY}
-      : {type: 'updateAttribute', key: ATTRIBUTE_KEY, value},
-  );
-
-  if (result.type === 'error') {
-    console.error(result.message);
-  }
 }
 
 /**

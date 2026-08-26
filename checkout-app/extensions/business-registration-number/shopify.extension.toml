@@ -3,9 +3,10 @@ api_version = "2026-07"
 [[extensions]]
 uid = "70e7ca6a-b075-56f7-c470-9ad95c58f2ecfcdb6834"
 type = "ui_extension"
-name = "t:name"
+# Literal, not a "t:" key: checkout UI extensions resolve those only for
+# buyer-facing strings through shopify.i18n, never for the merchant-facing name.
+name = "Business registration number"
 handle = "business-registration-number"
-description = "t:description"
 
   # Renders immediately after the address form, the closest the checkout gets to
   # the Company field that gates this input. A block target would be movable but

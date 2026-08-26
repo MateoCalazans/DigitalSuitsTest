@@ -1,0 +1,8 @@
+{
+  "buyerJourney": {"step": "CHECKOUT_COMPLETION"},
+  "cart": {
+    "registrationNumber": null,
+    "deliveryGroups": [{"deliveryAddress": {"company": null}}],
+    "billingAddress": null
+  }
+}

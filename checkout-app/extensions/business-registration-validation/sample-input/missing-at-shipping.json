@@ -1,0 +1,8 @@
+{
+  "buyerJourney": {"step": "CHECKOUT_INTERACTION"},
+  "cart": {
+    "registrationNumber": null,
+    "deliveryGroups": [{"deliveryAddress": {"company": "DigitalSuits"}}],
+    "billingAddress": null
+  }
+}

@@ -48,18 +48,6 @@ appearance, Typography, and Section padding.
 Values reach CSS as custom properties on the section wrapper, so the editor
 updates live and no `<style>` block is emitted per instance.
 
-### Typography
-
-The heading originally inherited `--font-heading--family`, the theme's global
-token, which is Inter here — nothing like the design. The section now carries its
-own `font_picker` and emits the matching `@font-face`, so its typography doesn't
-depend on the merchant's global settings.
-
-Sizes come from the Figma: heading 44px, body 19.92px, both at line-height 1.
-That tight leading looked like a measurement error, so it was checked against the
-comp — four lines occupy roughly 85px — and it holds. Arial is pinned for the
-body and the button because the design asks for it. The heading scales down on
-narrow viewports with `clamp()` but never exceeds the configured size.
 
 ### Working on it
 

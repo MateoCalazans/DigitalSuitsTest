@@ -335,26 +335,6 @@
         "padding-block-start": 48,
         "padding-block-end": 48
       }
-    },
-    "ds_feature_banner_capri": {
-      "type": "ds-feature-banner",
-      "settings": {
-        "heading": "Discover The Capri",
-        "body": "<p>The quest for the perfect sneaker ends right here, with the Capri. It's your day-to-night go to. Keep them box-fresh or let them get scuffed up—you'll love them either way.</p>",
-        "button_label": "Shop Men",
-        "button_action": "link",
-        "button_link": "shopify://collections/all",
-        "button_style": "link",
-        "card_horizontal_position": "flex-end",
-        "card_vertical_position": "stretch",
-        "text_alignment": "center",
-        "card_background_color": "#e3e0db",
-        "section_height": "large",
-        "heading_font_custom": "\"Kessler Display\", serif",
-        "heading_color": "#171717",
-        "body_color": "#666666",
-        "button_background_color": "#841719"
-      }
     }
   },
   "order": [

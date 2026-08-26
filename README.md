@@ -49,19 +49,6 @@ Values reach CSS as custom properties on the section wrapper, so the editor
 updates live and no `<style>` block is emitted per instance.
 
 
-### Working on it
-
-```bash
-shopify theme dev --store digitalsuits-test-ngbbizuq.myshopify.com
-shopify theme push --store digitalsuits-test-ngbbizuq.myshopify.com --theme <id>
-```
-
-The first push to a brand-new theme fails on JSON templates: files upload in
-parallel, so `templates/index.json` is validated before the sections it
-references land, and the CLI claims a section type "does not reference an
-existing section file". Run it again and it resolves — an ordering race, not a
-broken reference.
-
 ---
 
 ## Task 2 — Checkout field for the business registration number

@@ -1,0 +1,20 @@
+{
+  "name": "digitalsuits-checkout",
+  "version": "1.0.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "workspaces": [
+    "extensions/*"
+  ],
+  "scripts": {
+    "dev": "shopify app dev",
+    "build": "shopify app build",
+    "deploy": "shopify app deploy",
+    "test": "npm run test --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present"
+  },
+  "devDependencies": {
+    "@shopify/cli": "~3.89.0",
+    "typescript": "^7.0.2"
+  }
+}

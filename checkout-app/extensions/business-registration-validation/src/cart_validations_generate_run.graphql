@@ -1,0 +1,18 @@
+query CartValidationsGenerateRunInput {
+  buyerJourney {
+    step
+  }
+  cart {
+    registrationNumber: attribute(key: "business_registration_number") {
+      value
+    }
+    deliveryGroups {
+      deliveryAddress {
+        company
+      }
+    }
+    billingAddress {
+      company
+    }
+  }
+}

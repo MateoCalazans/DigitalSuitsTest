@@ -1,0 +1,16 @@
+api_version = "2026-07"
+
+[[extensions]]
+uid = "70e7ca6a-b075-56f7-c470-9ad95c58f2ecfcdb6834"
+type = "ui_extension"
+name = "t:name"
+handle = "business-registration-number"
+description = "t:description"
+
+  # Renders immediately after the address form, the closest the checkout gets to
+  # the Company field that gates this input. A block target would be movable but
+  # never lands here: its nearest placements are INFORMATION2, above the whole
+  # address, and INFORMATION3, below the delivery method selector.
+  [[extensions.targeting]]
+  module = "./src/Checkout.jsx"
+  target = "purchase.checkout.delivery-address.render-after"

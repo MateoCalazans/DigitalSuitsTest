@@ -1,0 +1,19 @@
+{
+  "name": "business-registration-number",
+  "version": "1.0.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest watch",
+    "typecheck": "tsc -p ."
+  },
+  "dependencies": {
+    "@preact/signals": "^2.11.1",
+    "@shopify/ui-extensions": "2026.7.x",
+    "preact": "^10.27.0"
+  },
+  "devDependencies": {
+    "vitest": "^3.2.4"
+  }
+}

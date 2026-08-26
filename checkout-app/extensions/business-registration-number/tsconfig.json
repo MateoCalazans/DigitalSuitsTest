@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact",
+    "allowJs": true,
+    "checkJs": true,
+    "noEmit": true,
+    "strict": true,
+    "skipLibCheck": true,
+    // Pulls in the JSX types for the Polaris components this target allows,
+    // plus the typing of the global `shopify` object it is handed.
+    "types": ["@shopify/ui-extensions/purchase.checkout.delivery-address.render-after"]
+  },
+  "include": ["src"]
+}

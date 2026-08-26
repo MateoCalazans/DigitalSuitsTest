@@ -1,0 +1,17 @@
+api_version = "2026-07"
+
+[[extensions]]
+uid = "b0eabf83-193b-cf64-eebe-6d980f997393594dc9a3"
+type = "function"
+name = "t:name"
+handle = "business-registration-validation"
+description = "t:description"
+
+  [[extensions.targeting]]
+  target = "cart.validations.generate.run"
+  input_query = "src/cart_validations_generate_run.graphql"
+  export = "cart-validations-generate-run"
+
+  [extensions.build]
+  command = ""
+  path = "dist/function.wasm"

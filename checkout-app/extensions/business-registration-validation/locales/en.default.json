@@ -1,0 +1,4 @@
+{
+  "name": "Business registration number validation",
+  "description": "Blocks checkout when a company address is missing a valid business registration number."
+}

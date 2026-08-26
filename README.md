@@ -133,10 +133,19 @@ resolves it — the error is an ordering race, not a broken reference.
 
 ## Task 2 — Checkout field for the business registration number
 
-Not yet implemented. Planned as a checkout UI extension for the field paired
-with a Cart and Checkout Validation Function for enforcement, since
-`useBuyerJourneyIntercept` is deprecated as of API version 2026-07 and
-client-side blocking alone can be bypassed.
+Lives in [`checkout-app/`](checkout-app/) — a Shopify app holding two
+extensions, with its own [README](checkout-app/README.md).
 
-The field appears only when the company address is filled in, and the value
-must start with `UA` followed by 8 to 10 digits.
+A checkout UI extension renders the field directly under the shipping address
+form and shows it only while the Company line holds something. A Cart and
+Checkout Validation function then decides whether the order may proceed, on
+`Continue to shipping` and on `Pay` alike.
+
+The split is deliberate. `useBuyerJourneyIntercept` was the hook built for this
+and it was deprecated in API version 2026-07; a validation function runs server
+side, so it also holds for Shop Pay, PayPal, Google Pay and Apple Pay, where an
+extension's UI never renders at all. The extension keeps a copy of the rule for
+inline feedback only.
+
+The value is `UA` followed by 8 to 10 digits. Characters that don't fit are
+refused as they're typed, and the finished value is re-checked server side.

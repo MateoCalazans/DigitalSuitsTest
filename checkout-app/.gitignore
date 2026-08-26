@@ -1,0 +1,7 @@
+node_modules
+dist
+generated
+.shopify
+*.local
+.env
+.claude

@@ -1,134 +1,119 @@
 # Checkout field for the business registration number
 
-A Shopify app with two extensions. Together they add one field to checkout,
-show it only for company addresses, and refuse the order when what's in it
-isn't a valid registration number.
+One field added to checkout, shown only for company addresses, with the order
+refused when what's in it isn't a valid registration number.
 
-| Extension | Type | Role |
-| --- | --- | --- |
-| [`extensions/business-registration-number`](extensions/business-registration-number) | Checkout UI extension | Renders the field and gives the buyer immediate feedback |
-| [`extensions/business-registration-validation`](extensions/business-registration-validation) | Cart and Checkout Validation function | Decides, server side, whether the order may proceed |
+| Extension | Role |
+| --- | --- |
+| [`business-registration-number`](extensions/business-registration-number) | Checkout UI extension — renders the field, tells the buyer what's wrong as they type |
+| [`business-registration-validation`](extensions/business-registration-validation) | Validation function — decides, server side, whether the order may proceed |
 
 ## The rule
 
-`UA` followed by 8 to 10 digits — 10 to 12 characters in total. Nothing else is
-accepted: the field refuses characters that don't fit as they're typed, and the
-function re-checks the finished value with `/^UA[0-9]{8,10}$/`.
+`UA` followed by 8 to 10 digits, so 10 to 12 characters. Characters that don't
+fit are refused as they're typed, and the finished value is re-checked with
+`/^UA[0-9]{8,10}$/`.
 
-The field appears only when the Company line of the shipping address holds
-something. Clearing that line removes the collected number from the order, so a
-personal order never carries one.
+The field appears only while the Company line of the shipping address holds
+something. Clearing that line removes the number from the order, so a personal
+order never carries one.
 
-### Where it sits
-
-Directly under the address form, via the static target
-`purchase.checkout.delivery-address.render-after`.
-
-Nothing can render beneath *Company* itself. The checkout exposes no slot
-between individual address fields — the finest granularity anywhere in checkout
-is the section, never the field.
-
-A block target (`purchase.checkout.block.render`) would let the merchant drag
-the field around, which sounds like the better trade until you read the
-[placement references](https://shopify.dev/docs/api/checkout-ui-extensions/2026-07/targets/checkout/block).
-The two placements bracketing the address are `INFORMATION2`, above the whole
-address form, and `INFORMATION3`, below the *delivery method* selector. Neither
-sits at the end of the address form. So the movable option can't reach the
-position that matters here, and the fixed one can.
-
-The only fields Shopify renders inside the address form itself are
-[localized fields](https://shopify.dev/docs/api/checkout-ui-extensions/2026-07/apis/localized-fields)
-— country-specific tax credentials such as CPF/CNPJ or codice fiscale. An app
-can read and validate those, but not define new ones, and there's no Ukrainian
-registration number among them.
-
-**Assumption.** The brief pins down the format but not whether the field is
-optional. It's treated as required once a company address is given — a company
-order without a registration number is the case the field exists to prevent. To
-make it optional instead, drop the `REQUIRED_MESSAGE` branch in
-[`cart_validations_generate_run.js`](extensions/business-registration-validation/src/cart_validations_generate_run.js)
-and the empty-value branch of `errorFor` in
-[`Checkout.jsx`](extensions/business-registration-number/src/Checkout.jsx).
+**One assumption.** The brief fixes the format but not whether the field is
+optional. It's required once a company address is given — a company order with no
+registration number is the case the field exists to prevent. To flip that, drop
+the `REQUIRED_MESSAGE` branch in the function and the empty-value branch of
+`errorFor` in `Checkout.jsx`.
 
 ## Why two extensions
 
 The brief asks for validation "when clicking the Continue to Shipping or Pay
-button". The checkout UI extension API had a hook for exactly that,
-`useBuyerJourneyIntercept`, but it was
-[deprecated in API version 2026-07](https://shopify.dev/changelog/deprecating-the-usebuyerjourneyintercept-api-on-checkout-ui-extensions)
-along with the `block_progress` capability it depended on, and Shopify points
-you at a validation function instead.
+button". There was a hook for exactly that, `useBuyerJourneyIntercept`, and it
+was [deprecated in 2026-07](https://shopify.dev/changelog/deprecating-the-usebuyerjourneyintercept-api-on-checkout-ui-extensions)
+along with the capability it depended on.
 
-That's the better answer regardless. A validation function runs on Shopify's
-servers, so it also covers Shop Pay, PayPal, Google Pay, Apple Pay and agentic
-checkout — surfaces where an extension's UI never renders and a client-side
-check would simply be skipped.
+That turns out to be the better answer anyway. A function runs on Shopify's
+servers, so it also covers Shop Pay, PayPal, Google Pay and Apple Pay — surfaces
+where the extension's UI never renders and a client-side check would simply be
+skipped. The extension keeps its own copy of the rule purely so the buyer sees
+the problem immediately instead of after a round trip.
 
-The UI extension still does its own checking, but only to be pleasant about it:
-the buyer sees the problem under the field as they type instead of after a
-round trip.
+## Decisions worth knowing
 
-### Where the error appears
+**Where the field sits.** Directly under the address form, via the static target
+`purchase.checkout.delivery-address.render-after`. Nothing can render beneath
+*Company* itself — the checkout has no slot between address fields. A movable
+block target sounds better until you check the placements: the nearest are above
+the whole address form, or below the delivery method selector. The fixed target
+is the only one that reaches the end of the address form.
 
-Validation functions attach an error either to the cart or to one of a fixed
-list of checkout fields. The number lives in a cart attribute, which isn't on
-that list, so the function's error is a page-level one (`target: '$.cart'`) and
-the inline message under the field comes from the UI extension.
+**Where the value lives.** The cart metafield `$app:business` /
+`registration_number`. A cart attribute was the first attempt — attributes can be
+read back, so the field could repopulate itself — but `applyAttributeChange` is
+deprecated in 2026-07 and the write never landed; every value reached the
+function as empty. The metafield works, and the cost is real: there's no signal
+for reading a cart metafield back, so leaving the information step and returning
+shows an empty field. The order stays correct, since the function reads the
+metafield rather than the input.
 
-The function holds off entirely while `buyerJourney.step` is `CART_INTERACTION`.
-Cart errors surface on the theme's cart page too, and there's nothing to enforce
-before the buyer has reached an address form.
+**When it's written.** On `input`, the moment the number is complete — not on
+`change`. Waiting for the field to lose focus raced the buyer pressing Continue,
+and the checkout would validate against a cart that hadn't heard about the value
+yet.
 
-### Where the value is stored
-
-In a cart attribute, `business_registration_number`, which carries onto the
-order so the merchant can see it in the admin next to the company address.
-
-`applyAttributeChange` carries a deprecation note in the 2026-07 typings
-pointing at cart metafields. Attributes were kept anyway: the checkout API has
-no signal for reading a cart metafield back, so the field would render empty
-whenever the buyer stepped back to the information page, and the value wouldn't
-show on the order without a metafield definition and an order-metafield copy.
-When a read path lands, the swap is `applyMetafieldChange` in `persist()` and
-`cart.metafield(namespace:key:)` in the input query.
+**Where the error appears.** Validation functions can target the cart or a fixed
+list of checkout fields. A metafield isn't on that list, so the function's error
+is page-level and the message under the field comes from the extension. The
+function stays quiet during `CART_INTERACTION` — cart errors surface on the
+theme's cart page too, and there's nothing to enforce before the buyer reaches an
+address form.
 
 ## Running it
 
 ```bash
 cd checkout-app
 npm install
-npm run dev          # links the app the first time, then serves both extensions
+npm run deploy
 ```
 
-The first `npm run dev` asks which Partner organization to use and whether to
-create a new app; it writes `client_id` into `shopify.app.toml` afterwards.
+The store has to be a **development store with client transfer disabled**, on the
+Shopify Plus plan. Custom apps containing functions are rejected anywhere else —
+the admin reports it as `CUSTOM_APP_FUNCTION_NOT_ELIGIBLE`, worded as a plan
+problem even when the real cause is that the store is earmarked for transfer.
 
-Two things have to be arranged on the store before the field does anything:
+Then, in that store's admin:
 
-1. **Protected customer data.** Reading the address `company` needs level 1
-   access, granted per app in the Partner Dashboard under **API access →
-   Protected customer data**. Without it `shippingAddress` comes back empty and
-   the field never appears.
-2. **Activate the validation.** Functions don't run until a merchant turns them
-   on: Shopify admin → **Settings → Checkout → Checkout rules → Add rule**, then
-   pick this app's validation. A store can have 25 active at once.
-
-Then activate the field in **Settings → Checkout → Customize**. It's a static
-target, so it takes its own position under the address form — there's nothing
-to drag.
+1. **Settings → Checkout** → *Company name* set to `Optional`. Without it the
+   checkout never collects a company and the field never appears.
+2. **Settings → Checkout → Customize** → activate the field. It's a static
+   target, so it takes its own position; there's nothing to drag.
+3. **Settings → Checkout → Checkout rules → Add rule** → pick this app's
+   validation, give it a title, activate it. Functions don't run until a merchant
+   turns them on.
 
 ## Tests
 
 ```bash
-npm test        # both extensions
+npm test
 npm run typecheck
 ```
 
-The function's tests cover the format, the two buyer journey steps that enforce
-it, carts with no company, and billing-only company addresses. The UI
-extension's tests cover the character restriction — which characters are
-accepted at which position, and where the input stops.
+31 cases. The function's cover the format, both buyer journey steps that enforce
+it, carts with no company, and billing-only company addresses. The extension's
+cover the character restriction — which characters are accepted at which
+position, and where the input stops.
 
-Type checking the UI extension is what keeps the Polaris component props honest;
-`tsconfig.json` names the extension target so the checker knows which components
-and which `shopify` APIs that target is allowed.
+To exercise the compiled Wasm instead of the source:
+
+```bash
+cd extensions/business-registration-validation
+npx shopify app function run \
+  --input=sample-input/blocked-at-pay.json \
+  --export=cart-validations-generate-run
+```
+
+`blocked-at-pay.json` and `allowed.json` sit at `CHECKOUT_COMPLETION` — the step
+behind the Pay button, awkward to reach by hand in a three-page checkout.
+
+Type checking is what keeps the Polaris props honest: `tsconfig.json` names the
+extension target, so the checker knows which components and which `shopify` APIs
+that target is allowed.

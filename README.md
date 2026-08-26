@@ -1,151 +1,96 @@
 # DigitalSuits — test assignment
 
-Shopify Horizon theme with a custom section built from scratch, plus a checkout
-extension for a business registration number.
+Two pieces: a custom section for the Horizon theme, and a checkout field for a
+business registration number.
 
 Development store: `digitalsuits-test-ngbbizuq.myshopify.com`
 
 ---
 
-## Task 1 — DS Feature banner section
+## Task 1 — DS Feature banner
 
-A standalone banner section: a full-bleed photo with a content card floating
-over it. The card holds a product shot, a heading, body copy, and a call to
-action. It is not derived from any existing theme section.
-
-### Files
+A full-bleed photo with a content card floating over it — product shot, heading,
+body copy, and a call to action. Built from scratch rather than adapted from an
+existing theme section.
 
 | File | Role |
 | --- | --- |
-| [`sections/ds-feature-banner.liquid`](sections/ds-feature-banner.liquid) | Markup, scoped CSS, and the full `{% schema %}` |
-| [`snippets/ds-feature-banner-button.liquid`](snippets/ds-feature-banner-button.liquid) | The call to action, in either of its two modes |
+| [`sections/ds-feature-banner.liquid`](sections/ds-feature-banner.liquid) | Markup, scoped CSS, and the `{% schema %}` |
+| [`snippets/ds-feature-banner-button.liquid`](snippets/ds-feature-banner-button.liquid) | The call to action, in either mode |
 | [`snippets/ds-feature-banner-image.liquid`](snippets/ds-feature-banner-image.liquid) | The responsive image inside the card |
+| [`snippets/ds-feature-banner-font.liquid`](snippets/ds-feature-banner-font.liquid) | The heading `@font-face` |
 
-### The button
+### The button has two modes
 
-The section's action is configurable in the theme editor, which is the part of
-the brief that drives the design of the snippet.
+**Link** renders a plain `<a>`, optionally opening in a new tab with
+`rel="noopener"`. An empty URL would normally make the button vanish, which
+reads as a bug to a merchant mid-setup, so the editor shows a non-interactive
+placeholder instead.
 
-**Link mode** renders a plain `<a>`, with an optional `target="_blank"` that
-carries `rel="noopener"`. When the URL is empty the button would normally
-vanish, which reads as a bug to a merchant mid-setup, so the editor gets a
-non-interactive placeholder instead of nothing.
+**Add to cart** wraps a `{% form 'product' %}` in the theme's own
+`<product-form-component>`, already loaded globally by
+[`snippets/scripts.liquid`](snippets/scripts.liquid). Reusing it means the button
+inherits the theme's AJAX submit, cart drawer, and icon count for free, and
+behaves like every other add-to-cart in the store. The first available variant is
+submitted; a sold-out one disables the button and swaps in the theme's own
+`products.product.sold_out` string.
 
-**Add to cart mode** wraps a `{% form 'product' %}` in the theme's own
-`<product-form-component>`, which is already loaded globally by
-[`snippets/scripts.liquid`](snippets/scripts.liquid). Reusing it means the
-button inherits the theme's AJAX submit, cart drawer, and cart icon count for
-free, and behaves identically to every other add-to-cart in the store. The
-first available variant is submitted; a sold-out variant disables the button
-and swaps the label for the theme's own `products.product.sold_out` string.
+The section can sit on any template, so the product comes from a setting rather
+than page context.
 
-The section can sit on any template, so the product comes from a `product`
-setting rather than page context.
+### Everything is editable
 
-### Settings
-
-Everything the brief asks to be customizable is exposed, grouped in the editor
-under Text, Background image, Card image, Button, Card position, Card
+Copy, card placement and width, text alignment, section height, spacing, and
+colors for the card, the photo overlay, and each piece of text — all grouped in
+the editor under Text, Background image, Card image, Button, Card position, Card
 appearance, Typography, and Section padding.
 
-- **All copy** — eyebrow, heading, body, button label
-- **Positioning** — card horizontal and vertical placement, text alignment,
-  card width (separately for mobile), distance from the section edge, gap
-  between elements, card image above or below the text, section height
-- **Background color** — the card background, plus an overlay over the photo,
-  and separate colors for heading, body, eyebrow, and button
-
 Values reach CSS as custom properties on the section wrapper, so the editor
-updates without a reload and no `<style>` block is generated per instance.
+updates live and no `<style>` block is emitted per instance.
 
----
+### Typography
 
-## Design decisions
+The heading originally inherited `--font-heading--family`, the theme's global
+token, which is Inter here — nothing like the design. The section now carries its
+own `font_picker` and emits the matching `@font-face`, so its typography doesn't
+depend on the merchant's global settings.
 
-### Kessler Display is not in the repository
+Sizes come from the Figma: heading 44px, body 19.92px, both at line-height 1.
+That tight leading looked like a measurement error, so it was checked against the
+comp — four lines occupy roughly 85px — and it holds. Arial is pinned for the
+body and the button because the design asks for it. The heading scales down on
+narrow viewports with `clamp()` but never exceeds the configured size.
 
-The Figma specifies **Kessler Display** for the heading. It is a commercial
-family from [Production Type](https://productiontype.com/font/kessler), priced
-from €80 per style, and it is absent from Shopify's font library, so
-`font_picker` cannot reach it. The copies circulating on free font sites are
-trial builds redistributed without the foundry's permission and carry a
-"personal use only" license, which does not cover a storefront.
-
-The section therefore ships with **Playfair Display** from Shopify's library as
-its default, and is built so a licensed face can take over without touching
-code. Setting **Typography → Custom heading font** to a family name takes
-precedence over the picker and suppresses the generated `@font-face`, so only
-one face is ever downloaded.
-
-#### What is in this repository
-
-`assets/KesslerDisplay-Regular.otf` is the foundry's **trial** build, included
-so the section renders as designed on the development store without extra
-setup. [`snippets/ds-feature-banner-font.liquid`](snippets/ds-feature-banner-font.liquid)
-declares it, and the homepage instance selects it through the custom font
-field.
-
-A trial build covers evaluation, not a production storefront. Before this goes
-anywhere real, replace the file with a licensed copy — same filename, or adjust
-the `format()` in the snippet if you swap to `.woff2`. Clearing the **Custom
-heading font** field drops Kessler entirely and returns the section to the font
-picker.
-
-### The section loads its own font
-
-The heading originally resolved through `--font-heading--family`, the theme's
-global heading token. That token is set to Inter here, so the heading rendered
-in a sans-serif with nothing like the design's character. The section now
-carries a `font_picker` of its own and emits the matching `@font-face`, which
-means its typography is independent of the merchant's global settings and the
-face can be swapped visually in the editor.
-
-### Typography values
-
-Taken from the Figma: heading at 44px / weight 400 / line-height 1, body at
-20px / line-height 1. The body's tight leading looked like a measurement error,
-so it was checked against the comp — four lines occupy roughly 85px at a
-19.92px size, which corroborates it. Both sizes are editor settings.
-
-The design specifies Arial for the body and the call to action, so both are
-pinned rather than following the theme's paragraph token. The heading scales
-down on narrow viewports via `clamp()` but never exceeds the configured size.
-
----
-
-## Working with the theme
+### Working on it
 
 ```bash
-# Live preview with hot reload
 shopify theme dev --store digitalsuits-test-ngbbizuq.myshopify.com
-
-# Push to a specific theme
 shopify theme push --store digitalsuits-test-ngbbizuq.myshopify.com --theme <id>
 ```
 
-**First push to a brand-new theme fails on JSON templates.** Files upload in
-parallel, so `templates/index.json` gets validated before the sections it
-references have landed, and the CLI reports that a section type "does not
-reference an existing section file". Running the same command a second time
-resolves it — the error is an ordering race, not a broken reference.
+The first push to a brand-new theme fails on JSON templates: files upload in
+parallel, so `templates/index.json` is validated before the sections it
+references land, and the CLI claims a section type "does not reference an
+existing section file". Run it again and it resolves — an ordering race, not a
+broken reference.
 
 ---
 
 ## Task 2 — Checkout field for the business registration number
 
-Lives in [`checkout-app/`](checkout-app/) — a Shopify app holding two
-extensions, with its own [README](checkout-app/README.md).
+Lives in [`checkout-app/`](checkout-app/), with its own
+[README](checkout-app/README.md) covering the details.
 
-A checkout UI extension renders the field directly under the shipping address
-form and shows it only while the Company line holds something. A Cart and
-Checkout Validation function then decides whether the order may proceed, on
-`Continue to shipping` and on `Pay` alike.
+A checkout UI extension renders the field under the shipping address and shows
+it only while the Company line holds something. A Cart and Checkout Validation
+function then decides whether the order may proceed — on `Continue to shipping`
+and on `Pay` alike.
 
-The split is deliberate. `useBuyerJourneyIntercept` was the hook built for this
-and it was deprecated in API version 2026-07; a validation function runs server
-side, so it also holds for Shop Pay, PayPal, Google Pay and Apple Pay, where an
-extension's UI never renders at all. The extension keeps a copy of the rule for
-inline feedback only.
+Two pieces rather than one because `useBuyerJourneyIntercept`, the hook built for
+exactly this, was deprecated in API version 2026-07. A function runs server side,
+so it also holds for Shop Pay, PayPal, Google Pay and Apple Pay, where an
+extension's UI never renders at all. The extension keeps a copy of the rule only
+to tell the buyer what's wrong while they type.
 
 The value is `UA` followed by 8 to 10 digits. Characters that don't fit are
-refused as they're typed, and the finished value is re-checked server side.
+refused as they're typed, and the finished value is re-checked on the server.
